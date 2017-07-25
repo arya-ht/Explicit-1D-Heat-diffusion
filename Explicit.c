@@ -7,7 +7,7 @@
 #define D 1.0
 #define tEND 10
 #define xEND M_PI
-#define lam .4
+#define lam .1
 #define dx (M_PI/10)
 #define dt (lam/D*dx*dx)
 
@@ -32,24 +32,19 @@ int main()
     double U[tSize][xSize];
 
     while (true){
-
         strcpy(fileNameBlockCSV, fileName);
         strcpy(errorFile, fileName);
         strcpy(fileNameBlockActualCSV, fileName);
         strcat(fileNameBlockCSV, "BLOCK.csv");
         strcat(errorFile, "ERROR.csv");
         strcat(fileNameBlockActualCSV, "BLOCKACTUAL.csv");
-
         initializeU( U );
-
         int i;
         for( i=1; i<tSize; i++ ){
             boundaryConditions( U, i );
 
             fillRow( U, i );
         }
-
-
         printAll( U );
         if ( lam>=0.5 ){
             printf("\n\nThe algorithm is unstable. Lambda = %1.5lf", lam);
@@ -89,11 +84,12 @@ void printAll( double u[tSize][xSize] ){
             fprintf(abf, "%lf,", exact(i*dt, j*dx) );
         }
         fprintf(abf,"\n");
-
+        double error = ((exact(i*dt,1*dx)-u[i][1])/exact(i*dt,1*dx)*100)
         for( j=0; j<xSize; j++ ){
             if( j==0 )printf("\nPercent ERROR:\t");
             if( j!=0 && j!=xSize-1)
-                fprintf(ef, "%lf,", (exact(i*dt,1*dx)-u[i][1])/exact(i*dt,1*dx)*100 );
+                prinnf("%lf,",error;
+                fprintf(ef, "%lf,", error;
         }
         fprintf(ef, "\n");
 
