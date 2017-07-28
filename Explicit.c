@@ -1,120 +1,121 @@
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include <string.h>
 #include <stdbool.h>
+#define string.h
 #define n 1
 #define D 1.0
-#define tEND 10
-#define xEND M_PI
-#define lam .1
+#define tMAX 10
+#define xMAX M_PI // does not work in VS 2017
+#define lam .4 //unstable after 0.5
 #define dx (M_PI/10)
 #define dt (lam/D*dx*dx)
 
-#pragma warning(disable:4996)
-int xSize = xEND/dx +1;
-int tSize = (double)tEND/dt +1;
-char fileName[100] = "Explicit1Dheat.csv";
-char fileNameTimeSepCSV[100];
+int xstep = xMAX / dx + 1;
+int tstep = (double)tMAX / dt + 1;
+char fileName[100] = "Exp1D.csv";
 char fileNameBlockCSV[100];
 char fileNameBlockActualCSV[100];
 char errorFile[101];
 
-double F( double t ,double x){ return 0; }
-void initializeU( double u[xSize][tSize] );
-void boundaryConditions( double u[tSize][xSize],int);
-void fillRow( double[tSize][xSize], int );
-void printAll( double u[tSize][xSize] );
-double exact( double, double);
+double F(double, double);
+void U0(double u[xstep][tstep]);
+void Boundary(double u[tstep][xstep], int tRow);
+void fill(double[tstep][xstep], int);
+void print(double u[tstep][xstep]);
+double exact(double, double);
 
-int main()
+int main(void)
 {
-    double U[tSize][xSize];
+	double U[tstep][xstep];
 
-    while (true){
-        strcpy(fileNameBlockCSV, fileName);
-        strcpy(errorFile, fileName);
-        strcpy(fileNameBlockActualCSV, fileName);
-        strcat(fileNameBlockCSV, "BLOCK.csv");
-        strcat(errorFile, "ERROR.csv");
-        strcat(fileNameBlockActualCSV, "BLOCKACTUAL.csv");
-        initializeU( U );
-        int i;
-        for( i=1; i<tSize; i++ ){
-            boundaryConditions( U, i );
+	U0(U);
+	int i;
+	for (i = 1; i<tstep; i++)
+	{
+		Boundary(U, i);
+		fill(U, i);
+	}
 
-            fillRow( U, i );
-        }
-        printAll( U );
-        if ( lam>=0.5 ){
-            printf("\n\nThe algorithm is unstable. Lambda = %1.5lf", lam);
-        }
-        printf("\n\nLambda: %lf\n", lam);
+	print(U);
+	if (lam >= 0.5)
+	{
+		printf("\n\ algorithm is unstable because Lambda is = %1.5lf", lam);
+	}
 
-        printf("\nWould you like to continue again? (y/n) ");
-        char continu;
-        scanf(" %c", &continu);
-        if (continu == 'n'){
-            return 0;
-        }
-    }
+	return 0;
+}
+void print(double u[tstep][xstep])
+{
+	int i, j;
 
-    return 0;
+
+	FILE *error = fopen("error.csv", "w");
+	FILE *estimate = fopen(fileName, "w");
+	FILE *actual = fopen("actual.csv", "w");
+
+	for (i = 0; i<tstep; i++)
+	{
+
+		for (j = 0; j<xstep; j++)
+		{
+			printf("\t%lf", u[i][j]);
+			fprintf(estimate, "%lf,", u[i][j]);
+		}
+		fprintf(estimate, "\n");
+
+		for (j = 0; j<xstep; j++)
+		{
+			printf("\t%lf", exact(i*dt, j*dx));
+			fprintf(actual, "%lf,", exact(i*dt, j*dx));
+		}
+		fprintf(actual, "\n");
+
+		for (j = 0; j<xstep; j++)
+		{
+			printf("\t%lf", (exact(i*dt, j*dx) - u[i][j]) / exact(i*dt, j*dx) * 100);
+			if (j != 0 && j != xstep - 1)
+				fprintf(error, "%lf,", (exact(i*dt, 1 * dx) - u[i][1]) / exact(i*dt, 1 * dx) * 100);
+		}
+		fprintf(error, "\n");
+
+		printf("\n\n\n\n");
+	}
+
+	fclose(error);
+	fclose(actual);
+	fclose(estimate);
+
 }
 
-void printAll( double u[tSize][xSize] ){
-    int i, j;
 
-    FILE *ef = fopen(errorFile, "w");
-    FILE *bf = fopen(fileNameBlockCSV, "w");
-    FILE *abf = fopen(fileNameBlockActualCSV, "w");
-
-    for( i=0; i<tSize; i++ ){
-
-        for( j=0; j<xSize; j++ ){
-            if( j==0 )printf("ESTIMATE:\t");
-            printf("\t%lf", u[i][j] );
-            fprintf(bf,"%lf,", u[i][j]);
-        }
-        fprintf(bf,"\n");
-
-        for( j=0; j<xSize; j++ ){
-            if( j==0 )printf("\nACTUAL:\t\t");
-            printf("\t%lf", exact(i*dt, j*dx) );
-            fprintf(abf, "%lf,", exact(i*dt, j*dx) );
-        }
-        fprintf(abf,"\n");
-        double error = ((exact(i*dt,1*dx)-u[i][1])/exact(i*dt,1*dx)*100)
-        for( j=0; j<xSize; j++ ){
-            if( j==0 )printf("\nPercent ERROR:\t");
-            if( j!=0 && j!=xSize-1)
-                prinnf("%lf,",error;
-                fprintf(ef, "%lf,", error;
-        }
-        fprintf(ef, "\n");
-
-        printf("\n\n\n\n");
-    }
-
-    fclose(ef);
-    fclose(abf);
-    fclose(bf);
-
+void U0(double u[tstep][xstep])
+{
+	int i;
+	for (i = 0; i<xstep; i++)
+	{
+		u[0][i] = sin(i*dx*n);
+	}
 }
-void initializeU( double u[tSize][xSize] ){
-    int i;
-    for( i=0; i<xSize; i++ ){
-        u[0][i] = sin(i*dx*n);
-    }
+void Boundary(double u[tstep][xstep], int tRow)
+{
+	u[tRow][0] = 0;
+	u[tRow][xstep - 1] = 0;
 }
-void boundaryConditions( double u[tSize][xSize], int tRow ){
-    u[tRow][0] = 0;
-    u[tRow][xSize-1] = 0;
+void fill(double u[tstep][xstep], int tRow)
+{
+	int i;
+	for (i = 1; i<xstep - 1; i++)
+	{
+		u[tRow][i] = u[tRow - 1][i] + lam*(u[tRow - 1][i - 1] - 2 * u[tRow - 1][i] + u[tRow - 1][i + 1]) + dt*F(i*dt, i*dx);
+	}
 }
-void fillRow( double u[tSize][xSize], int tRow){
-    int i;
-    for( i=1; i<xSize-1; i++ ){
-        u[tRow][i] = u[tRow-1][i] + lam*( u[tRow-1][i-1] - 2*u[tRow-1][i] + u[tRow-1][i+1] ) + dt*F(i*dt, i*dx);
-    }
+double exact(double t, double x)
+{
+	return exp(-n*n*t)*sin(n*x);
 }
-double exact( double t, double x ){ return exp(-n*n*t)*sin(n*x); }
+double F(double t, double x)
+{
+	return 0;
+}
