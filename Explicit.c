@@ -9,6 +9,7 @@
 #define lam .4 //unstable after 0.5
 #define dx (M_PI/10)
 #define dt (lam/D*dx*dx)
+//created by Arya HajiTaheri
 
 int xstep = xMAX / dx + 1;
 int tstep = (double)tMAX / dt + 1;
